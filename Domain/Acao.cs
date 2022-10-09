@@ -1,7 +1,9 @@
+using Amazon.DynamoDBv2.DataModel;
 using invest_analyst.Utils;
 
 namespace invest_analyst.Domain
 {
+    [DynamoDBTable("Acoes")]
     public class Acao
     {
         public Acao() { }
@@ -43,6 +45,7 @@ namespace invest_analyst.Domain
             Id = Guid.NewGuid().ToString();
         }
 
+        [DynamoDBHashKey]
         public string Id { get; set; }
         public string Ticket { get; set; }
         public double Preco { get; set; }
@@ -121,7 +124,8 @@ namespace invest_analyst.Domain
 
         public void CalcGraham()
         {
-            Graham = Currency.Round((double)Math.Sqrt(Math.Round((double)(22.5 * VPA * LPA), 2)));
+            var g = Math.Round((double)(22.5 * VPA * LPA), 2);
+            Graham = Currency.Round((double)Math.Sqrt(g < 0 ? 0 : g));
         }
 
         public static List<Acao> FilterBests(List<Acao> acoes)

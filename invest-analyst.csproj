@@ -6,6 +6,7 @@
     <RootNamespace>invest_analyst</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
+    <UserSecretsId>4b27431f-04f9-4ac1-af93-77ef530db0bc</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,5 +14,8 @@
     <PackageReference Include="ClosedXML" Version="0.96.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
     <PackageReference Include="Microsoft.Office.Interop.Excel" Version="15.0.4795.1001" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.5.5" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="5.0.0" />
   </ItemGroup>
+
 </Project>
