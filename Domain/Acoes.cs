@@ -9,29 +9,30 @@ namespace invest_analyst.Domain
         public Acoes(string ticket, string dySomaTotal, string valor, List<Indicadores> indicadores)
         {
             Ticket = ticket;
-            DySomaTotal = decimal.Parse(Currency.CleanPriceValue(dySomaTotal));
-            Valor = decimal.Parse(Currency.CleanPriceValue(valor));
+            DySomaTotal = Currency.CleanPriceValue(dySomaTotal);
+            Valor = Currency.CleanPriceValue(valor);
             Indicadores = indicadores;
             Calcule();
             DataAnalise = DateTime.UtcNow.AddHours(-3);
         }
 
+
         public string Ticket { get; private set; }
-        public decimal Valor { get; private set; }
-        public decimal DySomaTotal { get; private set; }
+        public double Valor { get; private set; }
+        public double DySomaTotal { get; private set; }
         public List<Indicadores> Indicadores { get; private set; }
-        public decimal Graham { get; private set; }
-        public decimal Bazin { get; private set; }
+        public double Graham { get; private set; }
+        public double Bazin { get; private set; }
         public DateTime DataAnalise { get; private set; }
 
         public int TotalDividendosPag { get; set; }
-        public decimal Dy5Anos { get; set; }
-        public decimal Dy10Anos { get; set; }
-        public decimal Price { get; set; }
-        public decimal? PL { get; set; }
-        public decimal? PVP { get; set; }
-        public decimal? VPA { get; set; }
-        public decimal? LPA { get; set; }
+        public double Dy5Anos { get; set; }
+        public double Dy10Anos { get; set; }
+        public double Price { get; set; }
+        public double? PL { get; set; }
+        public double? PVP { get; set; }
+        public double? VPA { get; set; }
+        public double? LPA { get; set; }
 
         public bool CValorJusto { get; set; }
         public bool CBazin { get; set; }
@@ -40,12 +41,12 @@ namespace invest_analyst.Domain
         public void CalculeDy(Prices price, List<Dy> dys)
         {
             TotalDividendosPag = dys.Count;
-            Dy5Anos = Currency.Round((dys.Take(5).Sum(e => e.Value) / 5) / 0.06m);
-            Dy10Anos = Currency.Round((dys.Take(10).Sum(e => e.Value) / 10) / 0.06m);
+            Dy5Anos = Currency.Round((dys.Take(5).Sum(e => e.Value) / 5) / 0.06);
+            Dy10Anos = Currency.Round((dys.Take(10).Sum(e => e.Value) / 10) / 0.06);
             Price = price.Price;
 
-            CValorJusto = Graham > Valor + (Valor * 0.1m) ? true : false;
-            CBazin = Bazin > Valor + (Valor * 0.1m) ? true : false;
+            CValorJusto = Graham > Valor + (Valor * 0.1) ? true : false;
+            CBazin = Bazin > Valor + (Valor * 0.1) ? true : false;
             CTeto = Dy5Anos > Valor ? true : false;
 
         }
@@ -62,8 +63,14 @@ namespace invest_analyst.Domain
                 return;
             }
 
-            Graham = Currency.Round((decimal)Math.Sqrt(Math.Round((double)(22.5m * VPA * LPA), 2)));
-            Bazin = Currency.Round((DySomaTotal * 100) / 6.5m);
+            Graham = CalcGraham(VPA, LPA);
+            Bazin = CalcBazin();
         }
+
+        public double CalcGraham(double? VPA, double? LPA)
+            => Currency.Round((double)Math.Sqrt(Math.Round((double)(22.5 * VPA * LPA), 2)));
+
+        public double CalcBazin()
+            => Currency.Round((DySomaTotal * 100) / 6.5);
     }
 }

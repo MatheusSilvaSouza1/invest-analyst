@@ -1,5 +1,3 @@
-
-
 namespace invest_analyst.Domain
 {
     public class Idiv
