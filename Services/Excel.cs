@@ -54,7 +54,7 @@ namespace invest_analyst.Services
             {
                 var worksheet = workbook.Worksheets.Add("Analises");
                 var props = typeof(Acao).GetProperties();
-                var names = props.Select(e => e.Name).ToList();
+                var names = props.Where(e => e.Name != nameof(Acao.Id)).Select(e => e.Name).ToList();
                 for (int i = 0; i < names.Count; i++)
                 {
                     worksheet.Cell(1, i + 1).Value = names[i];

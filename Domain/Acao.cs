@@ -1,9 +1,8 @@
-using Amazon.DynamoDBv2.DataModel;
 using invest_analyst.Utils;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace invest_analyst.Domain
 {
-    [DynamoDBTable("Acoes")]
     public class Acao
     {
         public Acao() { }
@@ -42,11 +41,11 @@ namespace invest_analyst.Domain
             ValorDeMercado = Currency.CleanPriceValue(acao.FirstOrDefault(e => e.Key == " VALOR DE MERCADO").Value);
             CalcGraham();
             CalcPoints();
-            Id = Guid.NewGuid().ToString();
+            Id = Guid.NewGuid();
         }
 
-        [DynamoDBHashKey]
-        public string Id { get; set; }
+        [BsonId]
+        public Guid Id { get; set; }
         public string Ticket { get; set; }
         public double Preco { get; set; }
         public double PrecoTeto { get; set; }
@@ -129,7 +128,7 @@ namespace invest_analyst.Domain
         }
 
         public static List<Acao> FilterBests(List<Acao> acoes)
-            => acoes.Where(e => e.DY > 7.5 &&
+            => acoes.Where(e => e.DY > 7 &&
                                 e.TotalPoints > 8 &&
                                 e.CAGRReceitas5Anos > 0 &&
                                 e.LiquidezMediaDiaria >= 100000.00 &&
