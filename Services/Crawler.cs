@@ -1,15 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 using invest_analyst.Domain;
+using invest_analyst.Infra.ClientsHttp;
 
 namespace invest_analyst.Services
 {
     public class Crawler : ICrawler
     {
         public readonly HttpClient httpClient;
+
         public Crawler()
         {
             httpClient = new HttpClient();
@@ -44,6 +43,25 @@ namespace invest_analyst.Services
                                     .ToList();
 
             return new Acoes(ticket, dy, valorAtual, indicadores);
+        }
+
+        public async Task<List<Acao>> GetAcoes()
+        {
+            var lines = await new StatusInvestApi().GetAcoesCSV();
+            var acoes = (from value in lines.Skip(1) select value)
+                        .Select(e =>
+                        {
+                            var columns = lines[0].Split(";");
+                            var dic = new Dictionary<string, string>();
+                            var values = e.Split(";");
+                            for (int i = 0; i < values.Count(); i++)
+                            {
+                                dic.Add(columns[i], values[i]);
+                            }
+                            return new Acao(dic);
+                        })
+                        .ToList();
+            return acoes;
         }
     }
 }
