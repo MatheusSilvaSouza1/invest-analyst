@@ -2,6 +2,7 @@
 using invest_analyst.Domain;
 using invest_analyst.Services;
 using AutoMapper;
+using invest_analyst.Infra.Database;
 
 namespace invest_analyst;
 
@@ -12,6 +13,7 @@ class Program
     private static readonly IExcel _excel = new Excel();
     private static readonly ICrawler _crawler = new Crawler();
     private static readonly IMapper _mapper = new Mapper(InitializeAutoMapper.Initialize());
+    private static readonly IContext _context = new ContextDb();
 
     static async Task Main(string[] args)
     {
@@ -30,12 +32,14 @@ class Program
         else if (option == 2)
         {
             await GenerateReportByBestsAcoes();
+            Console.WriteLine(@"Relatorio gerado!");
         }
     }
 
     public static async Task GenerateReportByBestsAcoes()
     {
         var acoes = await _crawler.GetAcoes();
+        await _context.Save(acoes);
         var acoesFilters = Acao.FilterBests(acoes);
         acoesFilters.ForEach(async acao =>
         {
@@ -53,20 +57,22 @@ class Program
         var idivAcoes = _readCsv.Read(path);
 
         idivAcoes = idivAcoes.OrderByDescending(e => e.Part).ToList();
-        var acoes = new List<Acoes>();
 
-        var count = 1;
-        foreach (var idiv in idivAcoes)
+        var acoes = await _context.FindAcoes(idivAcoes.Select(e => e.Codigo));
+        if (acoes.Count == 0)
         {
-            var price = await _pricesApi.GetPrices(idiv.Codigo);
-            var dy = await GetDy(idiv.Codigo, idiv.Nome);
-            var acao = await _crawler.GetInfosAsync(idiv.Codigo);
-            acao.CalculeDy(_mapper.Map<Prices>(price), _mapper.Map<List<Dy>>(dy));
-            acoes.Add(acao);
-            count++;
+            acoes = await _crawler.GetAcoes();
+            await _context.Save(acoes);
+            acoes = acoes.Where(e => idivAcoes.Select(e => e.Codigo).Contains(e.Ticket)).ToList();
         }
-
-        _excel.Write(acoes);
+        acoes = Acao.FilterBests(acoes);
+        foreach (var acao in acoes)
+        {
+            var dy = await GetDy(acao.Ticket, acao.Ticket);
+            acao.CalculeDy(dy);
+        }
+        var bestAcoes = acoes.Where(e => e.PrecoTeto > e.Preco).ToList();
+        _excel.Write(bestAcoes);
     }
 
     public static async Task<List<Dy>> GetDy(string codigo, string name)

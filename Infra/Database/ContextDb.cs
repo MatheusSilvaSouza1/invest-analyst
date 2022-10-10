@@ -20,7 +20,8 @@ namespace invest_analyst.Infra.Database
 
         public async Task<List<Acao>> FindAcoes(IEnumerable<string> tickets)
         {
-            var result = await _context.FindAsync(e => tickets.Contains(e.Ticket));
+            var filter = Builders<Acao>.Filter;
+            var result = await _context.FindAsync(e => tickets.Contains(e.Ticket) && e.DtAnalise >= DateTime.Now.Date && e.DtAnalise <= DateTime.Now);
             return await result.ToListAsync();
         }
 
